@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
 
+interface GitHubRepo {
+  name: string;
+  description: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  html_url: string;
+}
+
 export async function GET(
   request: Request,
-  context: { params: Promise<{ username: string }> }  // Fixed: params is now a Promise
+  context: { params: Promise<{ username: string }> }
 ) {
-  const { username } = await context.params;  // Fixed: await the params Promise
+  const { username } = await context.params;
 
   try {
     const response = await fetch(`https://api.github.com/users/${username}/repos`, {
       headers: {
         Accept: "application/vnd.github.v3+json",
-        "User-Agent": "github-portfolio-analyzer",  // Added: prevents rate limiting
+        "User-Agent": "github-portfolio-analyzer",
       },
     });
 
@@ -21,8 +29,9 @@ export async function GET(
       );
     }
 
-    const data = await response.json();
-    const repos = data.map((repo: any) => ({
+    const data: GitHubRepo[] = await response.json();
+
+    const repos = data.map((repo) => ({
       name: repo.name,
       description: repo.description || "No description",
       stars: repo.stargazers_count,
@@ -31,7 +40,7 @@ export async function GET(
     }));
 
     return NextResponse.json(repos);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to fetch repository data" },
       { status: 500 }

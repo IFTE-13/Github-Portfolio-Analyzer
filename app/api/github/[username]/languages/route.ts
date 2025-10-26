@@ -1,4 +1,3 @@
-// app/api/github/[username]/languages/route.ts
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -8,7 +7,6 @@ export async function GET(
   const { username } = await context.params;
 
   try {
-    // First get user's repos
     const reposRes = await fetch(`https://api.github.com/users/${username}/repos`, {
       headers: {
         Accept: "application/vnd.github.v3+json",
@@ -23,7 +21,6 @@ export async function GET(
     const repos = await reposRes.json();
     const languageMap: Record<string, number> = {};
 
-    // Fetch languages for each repo
     for (const repo of repos) {
       const langRes = await fetch(repo.languages_url, {
         headers: {
@@ -40,13 +37,12 @@ export async function GET(
       }
     }
 
-    // Convert to array and sort
     const languageData = Object.entries(languageMap)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
 
     return NextResponse.json(languageData);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to fetch language data" },
       { status: 500 }
