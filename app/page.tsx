@@ -16,7 +16,6 @@ export default function Home() {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
   const [sortBy, setSortBy] = useState<"stars" | "forks" | "name">("stars");
 
   // Reusable search function
@@ -29,7 +28,6 @@ export default function Home() {
     setRepos([]);
     setLanguages([]);
     setIsLoading(true);
-    setHasSearched(true);
 
     try {
       // Fetch user data first
@@ -108,7 +106,7 @@ export default function Home() {
       {!isLoading && (
         <div className="flex flex-col gap-8">
           {/* User Profile + Error */}
-          <UserProfile userData={userData} error={error} hasSearched={hasSearched} />
+          <UserProfile userData={userData} error={error} />
 
           {/* Data sections — only show when we have data */}
           {userData && repos.length > 0 && (
