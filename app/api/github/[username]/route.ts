@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { githubFetch } from "@/lib/github";
 
 export async function GET(
   request: Request,
@@ -7,18 +8,10 @@ export async function GET(
   const { username } = await context.params;
 
   try {
-    const response = await fetch(`https://api.github.com/users/${username}`, {
-      headers: {
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": "github-portfolio-analyzer",
-      },
-    });
+    const userData = await githubFetch<Record<string, unknown>>(
+      `https://api.github.com/users/${username}`
+    );
 
-    if (!response.ok) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const userData = await response.json();
     return NextResponse.json({
       name: userData.name,
       login: userData.login,
@@ -31,11 +24,12 @@ export async function GET(
       html_url: userData.html_url,
       company: userData.company,
       location: userData.location,
+      created_at: userData.created_at,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch user data" },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error ? error.message : "Failed to fetch user data";
+    const status = message.includes("rate limit") ? 429 : message.includes("404") ? 404 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

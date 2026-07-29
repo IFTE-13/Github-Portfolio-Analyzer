@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
-
-interface GitHubRepo {
-  name: string;
-  description: string | null;
-  stargazers_count: number;
-  forks_count: number;
-  html_url: string;
-}
+import { githubFetchAllPages } from "@/lib/github";
+import type { GitHubApiRepo } from "@/lib/types";
 
 export async function GET(
   request: Request,
@@ -15,21 +9,9 @@ export async function GET(
   const { username } = await context.params;
 
   try {
-    const response = await fetch(`https://api.github.com/users/${username}/repos`, {
-      headers: {
-        Accept: "application/vnd.github.v3+json",
-        "User-Agent": "github-portfolio-analyzer",
-      },
-    });
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch repositories" },
-        { status: response.status }
-      );
-    }
-
-    const data: GitHubRepo[] = await response.json();
+    const data = await githubFetchAllPages<GitHubApiRepo>(
+      `https://api.github.com/users/${username}/repos`
+    );
 
     const repos = data.map((repo) => ({
       name: repo.name,
@@ -37,13 +19,17 @@ export async function GET(
       stars: repo.stargazers_count,
       forks: repo.forks_count,
       url: repo.html_url,
+      language: repo.language,
+      updated_at: repo.updated_at,
+      created_at: repo.created_at,
+      topics: repo.topics || [],
     }));
 
     return NextResponse.json(repos);
-  } catch (_error) {
-    return NextResponse.json(
-      { error: "Failed to fetch repository data" },
-      { status: 500 }
-    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to fetch repository data";
+    const status = message.includes("rate limit") ? 429 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
