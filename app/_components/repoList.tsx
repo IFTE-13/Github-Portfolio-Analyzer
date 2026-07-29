@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Star, GitFork, ExternalLink, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import Link from "next/link";
-
-interface GitHubRepo {
-  name: string;
-  description: string;
-  stars: number;
-  forks: number;
-  url: string;
-}
+import type { GitHubRepo } from "@/lib/types";
 
 interface RepoListProps {
   repos: GitHubRepo[];
@@ -24,7 +24,11 @@ export function RepoList({ repos, sortBy, setSortBy }: RepoListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [reposPerPage, setReposPerPage] = useState(6);
 
-  // Sort repos
+  // Reset to page 1 when sort or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortBy, reposPerPage]);
+
   const sortedRepos = [...repos].sort((a, b) => {
     if (sortBy === "stars") return b.stars - a.stars;
     if (sortBy === "forks") return b.forks - a.forks;
@@ -33,26 +37,29 @@ export function RepoList({ repos, sortBy, setSortBy }: RepoListProps) {
 
   const totalPages = Math.ceil(sortedRepos.length / reposPerPage);
   const startIndex = (currentPage - 1) * reposPerPage;
-  const endIndex = startIndex + reposPerPage;
-  const currentRepos = sortedRepos.slice(startIndex, endIndex);
-
-  const goToPreviousPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const goToNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
+  const currentRepos = sortedRepos.slice(startIndex, startIndex + reposPerPage);
 
   return (
-    <div className="w-full max-w-5xl mx-auto font-tomorrow">
+    <div className="w-full max-w-6xl mx-auto px-4 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+      {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h3 className="text-lg font-semibold text-foreground">Repositories ({repos.length})</h3>
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+        <div>
+          <h3 className="text-xl font-bold text-foreground tracking-tight font-display">
+            All Repositories
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5 font-sans">
+            Total {repos.length} codebases analyzed
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
+            <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger id="sort" className="w-full sm:w-32">
-                <SelectValue />
+              <SelectTrigger
+                id="sort-select"
+                className="w-32 h-9 rounded-lg bg-card/40 border-border/40 text-xs font-semibold font-sans focus:ring-primary/20"
+              >
+                <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="stars">Stars</SelectItem>
@@ -61,77 +68,172 @@ export function RepoList({ repos, sortBy, setSortBy }: RepoListProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-2">
-            <Select
-              value={reposPerPage.toString()}
-              onValueChange={(value) => {
-                setReposPerPage(Number(value));
-                setCurrentPage(1);
-              }}
+          <Select
+            value={reposPerPage.toString()}
+            onValueChange={(value) => setReposPerPage(Number(value))}
+          >
+            <SelectTrigger
+              id="page-size-select"
+              className="w-20 h-9 rounded-lg bg-card/40 border-border/40 text-xs font-semibold font-sans focus:ring-primary/20"
             >
-              <SelectTrigger id="page-size" className="w-full sm:w-20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="6">6</SelectItem>
-                <SelectItem value="12">12</SelectItem>
-                <SelectItem value="24">24</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="6">6</SelectItem>
+              <SelectItem value="12">12</SelectItem>
+              <SelectItem value="24">24</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
       {repos.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {currentRepos.map((repo) => (
-              <Card key={repo.name} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle>
+              <Card
+                key={repo.name}
+                className="group flex flex-col border-border/40 bg-card/40 backdrop-blur-xs cyber-glow hover:bg-card/75 transition-all duration-300"
+              >
+                <CardContent className="flex flex-col flex-1 p-5">
+                  {/* Repo Name */}
+                  <div className="flex items-start justify-between gap-3 mb-2.5">
                     <Link
                       href={repo.url}
                       target="_blank"
-                      className="text-blue-500 hover:underline"
+                      className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate font-display"
                     >
                       {repo.name}
                     </Link>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="flex gap-4 text-sm">
-                    <span>⭐ {repo.stars}</span>
-                    <span>🍴 {repo.forks}</span>
+                    <Link
+                      href={repo.url}
+                      target="_blank"
+                      className="flex h-6 w-6 items-center justify-center rounded-md border border-border/30 bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all shrink-0"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-4 text-justify">
-                    {repo.description || "No description"}
+
+                  {/* Description */}
+                  <p className="text-xs text-muted-foreground leading-relaxed flex-1 line-clamp-2 mb-4 font-sans">
+                    {repo.description || "No description provided."}
                   </p>
+
+                  {/* Footer: language + stats */}
+                  <div className="flex items-center justify-between pt-3.5 border-t border-border/20 mt-auto">
+                    {repo.language ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-sans">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: getLanguageColor(repo.language) }}
+                        />
+                        {repo.language}
+                      </span>
+                    ) : (
+                      <span />
+                    )}
+                    <div className="flex items-center gap-3 text-xs font-semibold text-foreground font-sans">
+                      <span className="flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        <span className="tabular-nums">{repo.stars.toLocaleString()}</span>
+                      </span>
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <GitFork className="h-3.5 w-3.5 shrink-0" />
+                        <span className="tabular-nums">{repo.forks.toLocaleString()}</span>
+                      </span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-          <div className="flex items-center justify-between mt-6">
-            <Button
-              variant="outline"
-              onClick={goToPreviousPage}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-8 w-8 rounded-lg border-border/40 bg-card/40"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pageNum: number;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`h-8 w-8 rounded-lg text-xs font-bold font-display ${
+                      currentPage === pageNum
+                        ? "bg-primary text-primary-foreground"
+                        : "border-border/40 bg-card/40"
+                    }`}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 rounded-lg border-border/40 bg-card/40"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </>
       ) : (
-        <p className="text-center text-muted-foreground">No repositories found.</p>
+        <p className="text-center text-sm text-muted-foreground py-8">
+          No repositories found.
+        </p>
       )}
     </div>
   );
+}
+
+// Inline language color lookup (matches the shared utility)
+const LANGUAGE_COLORS: Record<string, string> = {
+  JavaScript: "#f1e05a",
+  TypeScript: "#3178c6",
+  Python: "#3572A5",
+  Java: "#b07219",
+  "C++": "#f34b7d",
+  C: "#555555",
+  "C#": "#178600",
+  Go: "#00ADD8",
+  Rust: "#dea584",
+  Ruby: "#701516",
+  PHP: "#4F5D95",
+  Swift: "#F05138",
+  Kotlin: "#A97BFF",
+  Dart: "#00B4AB",
+  Shell: "#89e051",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  SCSS: "#c6538c",
+  Vue: "#41b883",
+  Svelte: "#ff3e00",
+};
+
+function getLanguageColor(lang: string): string {
+  return LANGUAGE_COLORS[lang] || "#8b8b8b";
 }
