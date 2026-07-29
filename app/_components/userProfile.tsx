@@ -12,8 +12,6 @@ import {
   UserPlus,
   Calendar,
   AlertCircle,
-  Briefcase,
-  Layers,
 } from "lucide-react";
 import Link from "next/link";
 import type { GitHubUser } from "@/lib/types";
@@ -21,7 +19,6 @@ import type { GitHubUser } from "@/lib/types";
 interface UserProfileProps {
   userData: GitHubUser | null;
   error: string | null;
-  hasSearched: boolean;
 }
 
 function getAccountAge(createdAt: string): string {
@@ -39,7 +36,7 @@ function getAccountAge(createdAt: string): string {
   return `Member for ${yrs} yr${yrs > 1 ? "s" : ""} ${mos} mo${mos > 1 ? "s" : ""}`;
 }
 
-export function UserProfile({ userData, error, hasSearched }: UserProfileProps) {
+export function UserProfile({ userData, error }: UserProfileProps) {
   if (error) {
     return (
       <div className="w-full max-w-6xl mx-auto px-4 animate-fade-in-up">

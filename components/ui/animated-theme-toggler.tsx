@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -11,17 +11,17 @@ interface AnimatedThemeTogglerProps {
 }
 
 export const AnimatedThemeToggler = ({
-  className,
-  ...props
+  className
 }: AnimatedThemeTogglerProps) => {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
-  if (!mounted) {
+  if (!isClient) {
     return (
       <div className={cn("h-9 w-9 rounded-lg border border-border/40 bg-card/40 flex items-center justify-center text-muted-foreground", className)}>
         <Sun className="h-4 w-4 opacity-0" />

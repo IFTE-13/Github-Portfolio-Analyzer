@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, GitFork, ExternalLink, Award } from "lucide-react";
+import { Star, GitFork, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { GitHubRepo } from "@/lib/types";
 

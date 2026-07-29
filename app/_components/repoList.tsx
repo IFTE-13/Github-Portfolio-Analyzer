@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -24,11 +24,6 @@ export function RepoList({ repos, sortBy, setSortBy }: RepoListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [reposPerPage, setReposPerPage] = useState(6);
 
-  // Reset to page 1 when sort or page size changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [sortBy, reposPerPage]);
-
   const sortedRepos = [...repos].sort((a, b) => {
     if (sortBy === "stars") return b.stars - a.stars;
     if (sortBy === "forks") return b.forks - a.forks;
@@ -40,7 +35,7 @@ export function RepoList({ repos, sortBy, setSortBy }: RepoListProps) {
   const currentRepos = sortedRepos.slice(startIndex, startIndex + reposPerPage);
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+    <div key={`${sortBy}-${reposPerPage}`} className="w-full max-w-6xl mx-auto px-4 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
